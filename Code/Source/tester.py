@@ -20,11 +20,11 @@ class VehicleADTester(Node):
         # Publishers for vehicle control
         self.steering_pub = self.create_publisher(Float32, '/vehicle/steering_angle', 10)
         self.acceleration_pub = self.create_publisher(Float32, '/vehicle/acceleration', 10)
-        self.ad_enable_pub = self.create_publisher(Bool, '/ad_enable', 10)
+        self.ad_enable_pub = self.create_publisher(Bool, '/vehicle/ad_enable', 10)
         
         # Subscribers for monitoring
         self.ad_status_sub = self.create_subscription(
-            Bool, '/ad_status', self.ad_status_callback, 10)
+            Bool, '/vehicle/ad_status', self.ad_status_callback, 10)
         self.wheel_speeds_sub = self.create_subscription(
             Float32MultiArray, '/vehicle/wheel_speeds', self.wheel_speeds_callback, 10)
         
