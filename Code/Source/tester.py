@@ -147,7 +147,7 @@ class VehicleADTester(Node):
             time.sleep(2.0)
         
         # Acceleration test sequence  
-        accel_sequence = [0.0, 1.0, 2.0, 0.0, -1.0, 0.0]
+        accel_sequence = [0.0, 3.0, 5.0, 0.0, -3.0, 0.0]
         for i, accel in enumerate(accel_sequence):
             self.get_logger().info(f"📋 Acceleration step {i+1}/6: {accel:.1f} m/s²")
             self.send_acceleration_command(accel)
