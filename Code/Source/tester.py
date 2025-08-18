@@ -2,6 +2,7 @@
 """
 Test script for O3DE Vehicle Dynamics ROS2 AD System
 Tests all functionality including manual override detection
+AD System: Press 'A' key to engage autonomous driving mode
 """
 
 import rclpy
@@ -88,14 +89,14 @@ class VehicleADTester(Node):
         self.get_logger().info(f"🔧 Set AD enable: {enabled}")
     
     def test_manual_override_detection(self):
-        """Test manual override detection with timeout monitoring"""
+        """Test manual override detection with timeout monitoring - Press A key to engage AD"""
         self.get_logger().info("=== 🔍 Manual Override Detection Test ===")
         
         # Setup AD
         self.set_ad_enable(True)
         time.sleep(1.0)
         
-        self.get_logger().info("📋 Step 1: Press BACKSPACE in O3DE to engage AD...")
+        self.get_logger().info("📋 Step 1: Press A key in O3DE to engage AD...")
         if not self.wait_for_ad_status_change(15.0):
             self.get_logger().error("❌ AD engagement failed")
             return
@@ -112,7 +113,7 @@ class VehicleADTester(Node):
             self.get_logger().info("⏱️  Waiting 3 seconds for manual input timeout...")
             time.sleep(3.0)
             
-            self.get_logger().info("📋 Step 4: Press BACKSPACE to re-engage AD...")
+            self.get_logger().info("📋 Step 4: Press A key to re-engage AD...")
             if self.wait_for_ad_status_change(10.0):
                 self.get_logger().info("✅ AD re-engagement successful!")
                 return True
@@ -124,7 +125,7 @@ class VehicleADTester(Node):
             return False
     
     def test_ros2_control_sequence(self):
-        """Test ROS2 vehicle control sequence"""
+        """Test ROS2 vehicle control sequence - Press A key to engage AD if needed"""
         self.get_logger().info("=== 🎮 ROS2 Control Sequence Test ===")
         
         # Ensure AD is enabled and engaged
@@ -132,7 +133,7 @@ class VehicleADTester(Node):
         time.sleep(1.0)
         
         if not self.current_ad_status:
-            self.get_logger().info("📋 Press BACKSPACE to engage AD for this test...")
+            self.get_logger().info("📋 Press A key to engage AD for this test...")
             if not self.wait_for_ad_status_change(15.0):
                 self.get_logger().error("❌ AD not engaged - test aborted")
                 return
@@ -151,7 +152,7 @@ class VehicleADTester(Node):
         for i, accel in enumerate(accel_sequence):
             self.get_logger().info(f"📋 Acceleration step {i+1}/6: {accel:.1f} m/s²")
             self.send_acceleration_command(accel)
-            time.sleep(2.0)
+            time.sleep(4.0)  # Increased from 2.0 to 4.0 seconds for better vehicle movement
             
             # Show wheel speeds during acceleration
             if self.last_wheel_speeds:
@@ -183,6 +184,7 @@ def main():
         
         print("🚗 Vehicle AD System Tester Started 🤖")
         print("Make sure O3DE is running in game mode with the vehicle loaded!")
+        print("AD Engagement: Press 'A' key in O3DE to engage autonomous driving")
         print("\n" + "="*60)
         print("Test Menu:")
         print("1 - Manual Override Detection Test (recommended first test)")

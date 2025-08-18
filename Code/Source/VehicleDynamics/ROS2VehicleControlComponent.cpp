@@ -495,8 +495,8 @@ namespace VehicleDynamics
 
         if (inputChannel.IsStateBegan())
         {
-            // Handle AD engage key (Backspace) - only handle this key, let VehicleController handle arrow keys
-            if (channelId == AzFramework::InputDeviceKeyboard::Key::EditBackspace)
+            // Handle AD engage key (A) - only handle this key, let VehicleController handle arrow keys
+            if (channelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericA)
             {
                 // Can only engage AD if:
                 // 1. AD system is enabled
@@ -509,7 +509,7 @@ namespace VehicleDynamics
                     !m_adStatus)
                 {
                     m_adStatus = true;
-                    AZ_Printf("ROS2VehicleControl", "AD Status engaged via Backspace key");
+                    AZ_Printf("ROS2VehicleControl", "AD Status engaged via A key");
                 }
                 else
                 {
