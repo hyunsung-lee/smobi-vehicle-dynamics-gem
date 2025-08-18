@@ -81,8 +81,10 @@ namespace VehicleDynamics
 
         AZ::Transform m_steeringWheelInitialTransform{ AZ::Transform::CreateIdentity() };
 
+    public:
         VehicleConfiguration m_configuration;
 
+    private:
         AZStd::vector<WheelController*> m_frontAxleWheelControllers;
         AZStd::vector<WheelController*> m_rearAxleWheelControllers;
     };

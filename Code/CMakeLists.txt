@@ -35,6 +35,54 @@ ly_add_target(
             AZ::AzFramework
 )
 
+# Check if ROS2 gem is available and add conditional dependencies
+set(ROS2_GEM_AVAILABLE FALSE)
+if(TARGET Gem::ROS2.API)
+    set(ROS2_GEM_AVAILABLE TRUE)
+    message(STATUS "ROS2 gem detected, enabling ROS2 vehicle control support")
+else()
+    message(STATUS "ROS2 gem not found, ROS2 vehicle control will be disabled")
+endif()
+
+# Add conditional ROS2 dependencies to the Static target
+if(ROS2_GEM_AVAILABLE)
+    target_link_libraries(${gem_name}.Static 
+        PUBLIC 
+            Gem::ROS2.API
+    )
+    target_compile_definitions(${gem_name}.Static PUBLIC ROS2_GEM_ENABLED)
+    
+    # Find ROS2 packages needed by ROS2 gem
+    find_package(rclcpp QUIET)
+    find_package(std_msgs QUIET)
+    find_package(geometry_msgs QUIET)
+    find_package(sensor_msgs QUIET)
+    find_package(tf2_ros QUIET)
+    
+    if(rclcpp_FOUND AND std_msgs_FOUND)
+        target_link_libraries(${gem_name}.Static 
+            PUBLIC 
+                rclcpp::rclcpp
+                ${std_msgs_TARGETS}
+        )
+        
+        # Add additional ROS2 packages if found
+        if(geometry_msgs_FOUND)
+            target_link_libraries(${gem_name}.Static PUBLIC ${geometry_msgs_TARGETS})
+        endif()
+        if(sensor_msgs_FOUND)
+            target_link_libraries(${gem_name}.Static PUBLIC ${sensor_msgs_TARGETS})
+        endif()
+        if(tf2_ros_FOUND)
+            target_link_libraries(${gem_name}.Static PUBLIC ${tf2_ros_TARGETS})
+        endif()
+        
+        message(STATUS "ROS2 packages found and linked for VehicleDynamics gem")
+    else()
+        message(WARNING "ROS2 packages not found, ROS2 functionality will be limited")
+    endif()
+endif()
+
 # The ${gem_name}.API target declares the common interface that users of this gem should depend on in their targets
 ly_add_target(
     NAME ${gem_name}.API INTERFACE
@@ -70,6 +118,34 @@ ly_add_target(
             AZ::AzFramework
 )
 
+# Apply ROS2 dependencies to Private.Object target as well
+if(ROS2_GEM_AVAILABLE)
+    target_link_libraries(${gem_name}.Private.Object 
+        PUBLIC 
+            Gem::ROS2.API
+    )
+    target_compile_definitions(${gem_name}.Private.Object PUBLIC ROS2_GEM_ENABLED)
+    
+    if(rclcpp_FOUND AND std_msgs_FOUND)
+        target_link_libraries(${gem_name}.Private.Object 
+            PUBLIC 
+                rclcpp::rclcpp
+                ${std_msgs_TARGETS}
+        )
+        
+        # Add additional ROS2 packages if found
+        if(geometry_msgs_FOUND)
+            target_link_libraries(${gem_name}.Private.Object PUBLIC ${geometry_msgs_TARGETS})
+        endif()
+        if(sensor_msgs_FOUND)
+            target_link_libraries(${gem_name}.Private.Object PUBLIC ${sensor_msgs_TARGETS})
+        endif()
+        if(tf2_ros_FOUND)
+            target_link_libraries(${gem_name}.Private.Object PUBLIC ${tf2_ros_TARGETS})
+        endif()
+    endif()
+endif()
+
 # Here add ${gem_name} target, it depends on the Private Object library and Public API interface
 ly_add_target(
     NAME ${gem_name} ${PAL_TRAIT_MONOLITHIC_DRIVEN_MODULE_TYPE}
@@ -89,6 +165,34 @@ ly_add_target(
             Gem::${gem_name}.Private.Object
             AZ::AzFramework
 )
+
+# Apply ROS2 dependencies to main gem target as well
+if(ROS2_GEM_AVAILABLE)
+    target_link_libraries(${gem_name} 
+        PUBLIC 
+            Gem::ROS2.API
+    )
+    target_compile_definitions(${gem_name} PUBLIC ROS2_GEM_ENABLED)
+    
+    if(rclcpp_FOUND AND std_msgs_FOUND)
+        target_link_libraries(${gem_name} 
+            PUBLIC 
+                rclcpp::rclcpp
+                ${std_msgs_TARGETS}
+        )
+        
+        # Add additional ROS2 packages if found
+        if(geometry_msgs_FOUND)
+            target_link_libraries(${gem_name} PUBLIC ${geometry_msgs_TARGETS})
+        endif()
+        if(sensor_msgs_FOUND)
+            target_link_libraries(${gem_name} PUBLIC ${sensor_msgs_TARGETS})
+        endif()
+        if(tf2_ros_FOUND)
+            target_link_libraries(${gem_name} PUBLIC ${tf2_ros_TARGETS})
+        endif()
+    endif()
+endif()
 
 # By default, we will specify that the above target ${gem_name} would be used by
 # Client and Server type targets when this gem is enabled.  If you don't want it

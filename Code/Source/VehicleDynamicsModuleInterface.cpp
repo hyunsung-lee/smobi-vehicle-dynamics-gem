@@ -12,6 +12,7 @@
 #include <VehicleDynamics/VehicleController.h>
 #include <VehicleDynamics/VehicleDynamicsTypeIds.h>
 #include <VehicleDynamics/WheelController.h>
+#include <VehicleDynamics/ROS2VehicleControlComponent.h>
 
 #include <AzCore/Memory/Memory.h>
 
@@ -33,6 +34,7 @@ namespace VehicleDynamics
                 VehicleDynamicsSystemComponent::CreateDescriptor(),
                 WheelController::CreateDescriptor(),
                 VehicleController::CreateDescriptor(),
+                ROS2VehicleControlComponent::CreateDescriptor(),
             });
     }
 

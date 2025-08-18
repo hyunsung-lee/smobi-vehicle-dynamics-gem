@@ -20,7 +20,9 @@
     "icon_path": "preview.png",
     "requirements": "",
     "documentation_url": "./README.md",
-    "dependencies": [],
+    "dependencies": [
+        "ROS2"
+    ],
     "repo_uri": "",
     "compatible_engines": [],
     "engine_api_dependencies": [],

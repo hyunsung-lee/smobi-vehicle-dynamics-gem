@@ -44,6 +44,14 @@ namespace VehicleDynamics
         void SetVehicleEntity(const AZ::EntityId& vehicleEntityId);
         void SetCollisionGroup(const AZStd::string& groupName);
 
+        //! Get the current wheel speed in local coordinates
+        //! @return Vector3 with wheel velocity at ground contact point in local coordinates
+        AZ::Vector3 GetVelocityAtHitLocal() const { return m_velocityAtHitLocal; }
+        
+        //! Get the wheel radius from configuration
+        //! @return Wheel radius in meters
+        float GetWheelRadius() const { return m_configuration.m_wheelRadius; }
+
     protected:
         //////////////////////////////////////////////////////////////////////////
         // AZ::TickBus::Handler overrides

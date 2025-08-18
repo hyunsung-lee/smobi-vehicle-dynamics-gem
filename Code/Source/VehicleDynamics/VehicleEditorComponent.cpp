@@ -27,7 +27,7 @@ namespace VehicleDynamics
                 editContext->Class<VehicleEditorComponent>("VehicleController", "VehicleController")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "VehicleController")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC_CE("Game"))
-                    ->Attribute(AZ::Edit::Attributes::Category, "VehicleDynamics")
+                    ->Attribute(AZ::Edit::Attributes::Category, "SMOBI Vehicle Dynamics")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default,
                         &VehicleEditorComponent::m_configuration,

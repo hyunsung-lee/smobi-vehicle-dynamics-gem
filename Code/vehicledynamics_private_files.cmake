@@ -13,4 +13,6 @@ set(FILES
     Source/VehicleDynamics/WheelController.h
     Source/VehicleDynamics/WheelConfiguration.cpp
     Source/VehicleDynamics/WheelConfiguration.h
+    Source/VehicleDynamics/ROS2VehicleControlComponent.cpp
+    Source/VehicleDynamics/ROS2VehicleControlComponent.h
 )

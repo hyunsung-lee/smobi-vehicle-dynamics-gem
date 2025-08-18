@@ -38,5 +38,6 @@ namespace VehicleDynamics
     inline constexpr const char* WheelConfigurationTypeId = "{02C676E9-9A56-4C7E-B32C-BBBA3F6ED68C}";
     inline constexpr const char* WheelControllerTypeId = "{D8D81612-18CE-4492-9058-1891D9789A7B}";
     inline constexpr const char* WheelEditorComponentTypeId = "{EDE68C46-F5DE-49AB-8F5D-15F51F05E96F}";
+    inline constexpr const char* ROS2VehicleControlComponentTypeId = "{B2345678-9ABC-DEF0-1234-56789ABCDEF0}";
 
 } // namespace VehicleDynamics
