@@ -14,6 +14,7 @@
 #include <AzCore/Serialization/EditContextConstants.inl>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
+#include <AzCore/Component/TransformBus.h>
 #include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
 
 #ifdef ROS2_GEM_ENABLED
@@ -41,7 +42,11 @@ namespace VehicleDynamics
                 ->Field("ADEnableTopicName", &ROS2VehicleControlConfiguration::m_adEnableTopicName)
                 ->Field("ADStatusTopicName", &ROS2VehicleControlConfiguration::m_adStatusTopicName)
                 ->Field("ADStatusPublishRate", &ROS2VehicleControlConfiguration::m_adStatusPublishRate)
-                ->Field("ManualInputTimeoutSeconds", &ROS2VehicleControlConfiguration::m_manualInputTimeoutSeconds);
+                ->Field("ManualInputTimeoutSeconds", &ROS2VehicleControlConfiguration::m_manualInputTimeoutSeconds)
+                ->Field("EnablePosePublishing", &ROS2VehicleControlConfiguration::m_enablePosePublishing)
+                ->Field("PoseTopicName", &ROS2VehicleControlConfiguration::m_poseTopicName)
+                ->Field("PosePublishRate", &ROS2VehicleControlConfiguration::m_posePublishRate)
+                ->Field("PoseReferenceEntity", &ROS2VehicleControlConfiguration::m_poseReferenceEntity);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
@@ -106,7 +111,27 @@ namespace VehicleDynamics
                         "Time after manual input before AD can be re-engaged")
                         ->Attribute(AZ::Edit::Attributes::Min, 0.5f)
                         ->Attribute(AZ::Edit::Attributes::Max, 10.0f)
-                        ->Attribute(AZ::Edit::Attributes::Step, 0.1f);
+                        ->Attribute(AZ::Edit::Attributes::Step, 0.1f)
+                    ->ClassElement(AZ::Edit::ClassElements::Group, "Pose Publishing")
+                    ->DataElement(AZ::Edit::UIHandlers::CheckBox, 
+                        &ROS2VehicleControlConfiguration::m_enablePosePublishing,
+                        "Enable Pose Publishing", 
+                        "Publish vehicle pose to ROS2 topic")
+                    ->DataElement(AZ::Edit::UIHandlers::LineEdit, 
+                        &ROS2VehicleControlConfiguration::m_poseTopicName,
+                        "Pose Topic Name", 
+                        "ROS2 topic name for pose publishing (PoseStamped)")
+                    ->DataElement(AZ::Edit::UIHandlers::SpinBox, 
+                        &ROS2VehicleControlConfiguration::m_posePublishRate,
+                        "Pose Publish Rate (Hz)", 
+                        "Rate at which to publish vehicle pose")
+                        ->Attribute(AZ::Edit::Attributes::Min, 0.1f)
+                        ->Attribute(AZ::Edit::Attributes::Max, 100.0f)
+                        ->Attribute(AZ::Edit::Attributes::Step, 0.1f)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, 
+                        &ROS2VehicleControlConfiguration::m_poseReferenceEntity,
+                        "Pose Reference Entity", 
+                        "Entity whose coordinate will become the reference point for pose publishing");
             }
         }
     }
@@ -207,6 +232,19 @@ namespace VehicleDynamics
                 m_lastWheelSpeedPublishTime = 0.0f;
             }
         }
+        
+        // Publish pose
+        if (m_configuration.m_enablePosePublishing)
+        {
+            m_lastPosePublishTime += deltaTime;
+            const float posePublishInterval = 1.0f / m_configuration.m_posePublishRate;
+            
+            if (m_lastPosePublishTime >= posePublishInterval)
+            {
+                PublishPose();
+                m_lastPosePublishTime = 0.0f;
+            }
+        }
     }
 
     void ROS2VehicleControlComponent::InitializeROS2Subscriptions()
@@ -288,6 +326,16 @@ namespace VehicleDynamics
                 AZ_Printf("ROS2VehicleControl", "Created AD status publisher on topic: %s", m_configuration.m_adStatusTopicName.c_str());
             }
         }
+
+        // Create pose publisher
+        if (m_configuration.m_enablePosePublishing && !m_configuration.m_poseTopicName.empty())
+        {
+            m_posePublisher = m_rosNode->create_publisher<geometry_msgs::msg::PoseStamped>(
+                m_configuration.m_poseTopicName.c_str(),
+                10);
+                
+            AZ_Printf("ROS2VehicleControl", "Created pose publisher on topic: %s", m_configuration.m_poseTopicName.c_str());
+        }
 #else
         AZ_Warning("ROS2VehicleControl", false, "ROS2 gem is not enabled. ROS2 vehicle control will not function.");
 #endif
@@ -302,6 +350,7 @@ namespace VehicleDynamics
         m_adEnableSubscription.reset();
         m_wheelSpeedPublisher.reset();
         m_adStatusPublisher.reset();
+        m_posePublisher.reset();
         m_rosNode.reset();
 #endif
     }
@@ -549,6 +598,46 @@ namespace VehicleDynamics
         // This method is now used only for timeout checking
         // The actual input detection is handled in HandleKeyboardEvent
         return m_manualInputDetected;
+    }
+
+    void ROS2VehicleControlComponent::PublishPose()
+    {
+#ifdef ROS2_GEM_ENABLED
+        if (!m_posePublisher)
+        {
+            return;
+        }
+
+        // Determine which entity to use for pose reference
+        AZ::EntityId referenceEntityId = m_configuration.m_poseReferenceEntity;
+        
+        // If no reference entity is specified, use this component's entity
+        if (!referenceEntityId.IsValid())
+        {
+            referenceEntityId = GetEntityId();
+        }
+
+        // Get the world transform of the reference entity
+        AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(worldTransform, referenceEntityId, &AZ::TransformBus::Events::GetWorldTM);
+
+        // Create and populate the PoseStamped message
+        geometry_msgs::msg::PoseStamped poseMsg;
+        
+        // Set header information
+        auto ros2Interface = ROS2::ROS2Interface::Get();
+        if (ros2Interface)
+        {
+            poseMsg.header.stamp = ros2Interface->GetROSTimestamp();
+        }
+        poseMsg.header.frame_id = "simulation";  // Fixed frame name as requested
+        
+        // Convert O3DE transform to ROS2 pose
+        poseMsg.pose = ROS2::ROS2Conversions::ToROS2Pose(worldTransform);
+        
+        // Publish the message
+        m_posePublisher->publish(poseMsg);
+#endif
     }
 
 } // namespace VehicleDynamics

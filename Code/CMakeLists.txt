@@ -49,6 +49,7 @@ if(ROS2_GEM_AVAILABLE)
     target_link_libraries(${gem_name}.Static 
         PUBLIC 
             Gem::ROS2.API
+            Gem::ROS2.Static
     )
     target_compile_definitions(${gem_name}.Static PUBLIC ROS2_GEM_ENABLED)
     
@@ -123,6 +124,7 @@ if(ROS2_GEM_AVAILABLE)
     target_link_libraries(${gem_name}.Private.Object 
         PUBLIC 
             Gem::ROS2.API
+            Gem::ROS2.Static
     )
     target_compile_definitions(${gem_name}.Private.Object PUBLIC ROS2_GEM_ENABLED)
     
@@ -171,6 +173,7 @@ if(ROS2_GEM_AVAILABLE)
     target_link_libraries(${gem_name} 
         PUBLIC 
             Gem::ROS2.API
+            Gem::ROS2.Static
     )
     target_compile_definitions(${gem_name} PUBLIC ROS2_GEM_ENABLED)
     

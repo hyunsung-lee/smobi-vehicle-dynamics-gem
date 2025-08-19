@@ -24,6 +24,9 @@
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <ROS2/ROS2Bus.h>
+#include <ROS2/Utilities/ROS2Conversions.h>
 #endif
 
 namespace VehicleDynamics
@@ -51,6 +54,12 @@ namespace VehicleDynamics
         AZStd::string m_adStatusTopicName = "/vehicle/ad_status";
         float m_adStatusPublishRate = 5.0f; // Hz
         float m_manualInputTimeoutSeconds = 2.0f; // Time after manual input before AD can be re-engaged
+        
+        // Pose publishing
+        bool m_enablePosePublishing = true;
+        AZStd::string m_poseTopicName = "/vehicle/pose";
+        float m_posePublishRate = 10.0f; // Hz
+        AZ::EntityId m_poseReferenceEntity; // Entity whose coordinate will become the reference point
         
         static void Reflect(AZ::ReflectContext* context);
     };
@@ -101,6 +110,9 @@ namespace VehicleDynamics
         void HandleKeyboardEvent(const AzFramework::InputChannel& inputChannel);
         bool IsManualInputActive() const;
         
+        // Pose publishing methods
+        void PublishPose();
+        
 #ifdef ROS2_GEM_ENABLED
         void OnSteeringMessage(const std_msgs::msg::Float32::SharedPtr msg);
         void OnAccelerationMessage(const std_msgs::msg::Float32::SharedPtr msg);
@@ -112,6 +124,7 @@ namespace VehicleDynamics
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr m_adEnableSubscription;
         rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr m_wheelSpeedPublisher;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_adStatusPublisher;
+        rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_posePublisher;
 #endif
 
         ROS2VehicleControlConfiguration m_configuration;
@@ -124,6 +137,9 @@ namespace VehicleDynamics
         float m_lastManualInputTime = 0.0f; // Time since last manual input
         float m_lastADStatusPublishTime = 0.0f; // Time tracking for AD status publishing
         float m_currentTime = 0.0f;         // Current simulation time
+        
+        // Pose publishing state variables
+        float m_lastPosePublishTime = 0.0f; // Time tracking for pose publishing
     };
 
 } // namespace VehicleDynamics
