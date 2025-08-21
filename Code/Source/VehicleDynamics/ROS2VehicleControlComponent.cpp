@@ -510,7 +510,10 @@ namespace VehicleDynamics
             if (m_adStatus)
             {
                 m_adStatus = false;
-                AZ_Printf("ROS2VehicleControl", "AD Status disabled because AD Enable is false");
+                // Reset vehicle commands when AD is disabled to prevent command persistence
+                VehicleDynamicsRequestBus::Event(GetEntityId(), &VehicleDynamicsRequests::SetAcceleration, 0.0f);
+                VehicleDynamicsRequestBus::Event(GetEntityId(), &VehicleDynamicsRequests::SetSteeringAngle, 0.0f);
+                AZ_Printf("ROS2VehicleControl", "AD Status disabled because AD Enable is false - vehicle commands reset");
             }
             return;
         }
@@ -521,7 +524,10 @@ namespace VehicleDynamics
             if (m_adStatus)
             {
                 m_adStatus = false;
-                AZ_Printf("ROS2VehicleControl", "AD Status disabled due to manual input override");
+                // Reset vehicle commands when manual override occurs to prevent command persistence
+                VehicleDynamicsRequestBus::Event(GetEntityId(), &VehicleDynamicsRequests::SetAcceleration, 0.0f);
+                VehicleDynamicsRequestBus::Event(GetEntityId(), &VehicleDynamicsRequests::SetSteeringAngle, 0.0f);
+                AZ_Printf("ROS2VehicleControl", "AD Status disabled due to manual input override - vehicle commands reset");
             }
         }
     }
